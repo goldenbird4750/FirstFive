@@ -22,15 +22,6 @@ password:{
 type:String,
 required:false
 },
-
-image:{
-  type:String,
-  default:"credentials"
-}
-,
-
-
-
 lastStepDate:{
   type:Date,
   default:null,
@@ -41,7 +32,4 @@ completedSteps:{
 }
   },{timestamps:true});
   
-
-
-
   export default mongoose.models.user || mongoose.model("user",UserSchema)

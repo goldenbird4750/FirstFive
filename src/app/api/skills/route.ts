@@ -1,34 +1,35 @@
 import { NextResponse } from "next/server";
 import { connectDb } from "@/lib/mongodb";
 import Skill from "@/models/skill";
+import { auth } from "@/lib/auth";
+import { error } from "console";
 
 
-export async function GET() {
+export async function GET(req:Request) {
   try {
     await connectDb();
-    const skills = await Skill.find().sort({ createdAt: -1 });
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
-    for (let skill of skills) {
-      let updated: boolean = false;
-
-      if (skill.lastBattleDate) {
-        const lastBattle = new Date(skill.lastBattleDate);
-        lastBattle.setHours(0, 0, 0, 0);
-        if (lastBattle.getTime() !== today.getTime()) {
-          skill.completedToday = false;
-          skill.todayMinutes = 0;
-          updated = true;
-        }
-      }
-
-      if (updated) {
-        await skill.save();
-      }
+    const session = await auth()
+    if(!session){
+      return NextResponse.json({error:"unauthorized"},{status:401})
     }
 
-    return NextResponse.json(skills);
+const userId = session.user?.id
+
+
+if(!userId){
+  return NextResponse.json(
+    {error:"user id required"},
+    {status:400}
+  )
+}
+const skillDoc = await Skill.findOne({userId})
+if(!skillDoc){
+  return NextResponse.json({skills:[]})
+
+}
+return NextResponse.json(skillDoc.skills)
+
   } catch (error) {
     return NextResponse.json(
       { error: "failed to fetch skills" },
@@ -42,18 +43,43 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     await connectDb();
-    const body = await req.json();
-    if (!body.name) {
+    const session = await auth()
+    if(!session){
       return NextResponse.json(
-        { error: "skill name is required" },
-        { status: 400 }
-      );
+        {error:"unauthorized"},
+        {status:401}
+      )
     }
-    const newSkill = await Skill.create({
-      name: body.name,
-    });
 
-    return NextResponse.json(newSkill, { status: 201 });
+const userId = session.user?.id
+if(!userId){
+      return NextResponse.json(
+        {error:"userId  are required"},
+        {status:400}
+      )
+    }
+    const body = await req.json()
+    const {name} = body
+    if(!name){
+      return NextResponse.json(
+        {error:" skill name are required"},
+        {status:400}
+      )
+    }
+    const newSkill = {name:name.trim()}
+
+    const updatedSkillDoc = await Skill.findOneAndUpdate(
+      {userId},
+      {$push :{skills:newSkill}},
+      {new:true}
+
+    )
+
+    return NextResponse.json(
+      {message:"skill added successfully",skills : updatedSkillDoc?.skills},
+      
+    )
+
   } catch (error) {
     return NextResponse.json(
       { error: "failed to create skill" },

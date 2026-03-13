@@ -1,7 +1,14 @@
 import mongoose , {Schema,models, model }  from "mongoose";
 const skillSchema  =  new Schema(
   {
-    name:{
+
+    userId:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:"User",
+      required:true
+    },
+    skills:[
+   { name:{
       type:String,
       required:true,
       trim:true
@@ -29,7 +36,7 @@ const skillSchema  =  new Schema(
       type:Boolean,
       default:false
     }
-
+}]
   },{timestamps:true}
 )
 

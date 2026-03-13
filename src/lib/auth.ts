@@ -57,7 +57,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
       callbacks: {
   async signIn({ user }) {
-console.log("gogle user",user)
+
     await connectDb()
 
     const existingUser = await User.findOne({
@@ -65,15 +65,37 @@ console.log("gogle user",user)
     })
 
     if (!existingUser) {
-      await User.create({
+
+     const newUser =  await User.create({
         name: user.name,
         email: user.email,
-        image: user.image ?? ''
+      
       })
-    }
+
+      user.id = newUser._id.toString()
+}else{
+  user.id = existingUser._id.toString()
+}
 
     return true
+  },
+
+  async jwt ({token,user}){
+    if(user){
+      token.id = user.id
+    }
+    return token
+  },
+
+async session ({session,token}){
+  if(session.user){
+    session.user.id =token.id as string
   }
+
+
+return session
+
+}
 },
 
 });
