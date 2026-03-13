@@ -123,7 +123,7 @@ const nextStep = completedSteps.length + 1
             { step.id === nextStep  &&  lastDate !== today &&    ( <div className="flex justify-center">
 
                 <button 
-                  onClick={()=>route.push(`/step/${step.id}`)}
+                  onClick={()=>route.push(`/step/${step.id}`)} 
                   className="px-4 py-2 rounded-lg bg-blue-600 text-sm">
                    start
                 </button>
@@ -131,7 +131,7 @@ const nextStep = completedSteps.length + 1
               </div>
               )
               }
-
+      
 
             { step.id === nextStep  &&  lastDate === today &&    ( <div className="flex justify-center">
 

@@ -20,7 +20,7 @@ const existingUser = await User.findOne({email})
 
 if(existingUser){
   return NextResponse.json(
-    {error:"user already exist "},
+    {error:"user already exist go to login "},
     {status:400}
   )
 }

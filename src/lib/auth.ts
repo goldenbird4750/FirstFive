@@ -57,7 +57,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
       callbacks: {
   async signIn({ user }) {
-
+console.log("gogle user",user)
     await connectDb()
 
     const existingUser = await User.findOne({
@@ -68,7 +68,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       await User.create({
         name: user.name,
         email: user.email,
-        image: user.image
+        image: user.image ?? ''
       })
     }
 
