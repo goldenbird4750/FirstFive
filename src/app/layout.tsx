@@ -40,6 +40,7 @@ export default function RootLayout({
                 <Link href="/profile" className="hover:text-white transition">
                   Profile
                 </Link>
+                
               </nav>
 
             </div>

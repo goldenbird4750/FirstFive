@@ -185,7 +185,7 @@ export default function BattlePage() {
     }
 
     try {
-      const res = await fetch("/api/skills", {
+      await fetch("/api/skills", {
         method: "post",
         headers: {
           "Content-Type": "application/json"
@@ -193,22 +193,13 @@ export default function BattlePage() {
         body: JSON.stringify({ name: newSkill })
       })
 
-
-      if (!res.ok) {
-        throw new Error("failed to add skill")
-
-      }
-      const data = await res.json()
-
-      setSkills((prev) => [data, ...prev]);
+       fetchSkills()
       setNewSkill("")
       setShowInput(false);
 
     } catch (error) {
       console.log("error adding to add data")
     }
-
-
   };
 
   // Start 5 min

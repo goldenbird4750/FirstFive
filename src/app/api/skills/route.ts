@@ -7,22 +7,18 @@ import { error } from "console";
 
 export async function GET(req:Request) {
   try {
-    await connectDb();
+   
 
     const session = await auth()
     if(!session){
       return NextResponse.json({error:"unauthorized"},{status:401})
     }
 
+ await connectDb();
+
 const userId = session.user?.id
 
 
-if(!userId){
-  return NextResponse.json(
-    {error:"user id required"},
-    {status:400}
-  )
-}
 const skillDoc = await Skill.findOne({userId})
 if(!skillDoc){
   return NextResponse.json({skills:[]})
@@ -71,13 +67,14 @@ if(!userId){
     const updatedSkillDoc = await Skill.findOneAndUpdate(
       {userId},
       {$push :{skills:newSkill}},
-      {new:true}
+      {new:true }
 
     )
 
     return NextResponse.json(
-      {message:"skill added successfully",skills : updatedSkillDoc?.skills},
-      
+{
+  message:"skill added  successfully"
+}
     )
 
   } catch (error) {
