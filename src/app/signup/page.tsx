@@ -29,12 +29,15 @@ e.preventDefault()
 const data = await res.json()
 
 if(res.ok){
-  alert("account created")
-  router.push("/signin")}
+  alert("account created")}
 else{
   alert(data.error)
   return
 }
+
+await signIn("credentials",{
+  email,password,redirect:true,callbackUrl:"/battle"
+})
 
 
 }

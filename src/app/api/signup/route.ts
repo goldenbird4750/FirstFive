@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { connectDb } from "@/lib/mongodb";
 import User from "@/models/user";
+import Skill from "@/models/skill";
+import user from "@/models/user";
 
 export async function POST(req: Request) {
   try {
@@ -27,13 +29,18 @@ if(existingUser){
 
 const hashedPassword = await bcrypt.hash(password,10)
 
-const user = new User({
+const user = await User.create({
   name,
   email,
   password:hashedPassword
 })
 
-await user.save()
+
+
+await Skill.create({
+  userId:user._id,
+  skills:[]
+})
 
 return NextResponse.json(
   {message:"user created successfully"},

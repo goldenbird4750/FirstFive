@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { connectDb } from "@/lib/mongodb";
 import User from "@/models/user";
 import Google from "next-auth/providers/google";
+import Skill from "@/models/skill";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
@@ -35,16 +36,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (!user) {
-          throw new Error("User not found");
+          return null
         }
-
+      
         const isValid = await bcrypt.compare(
           credentials?.password as string,
           user.password
         );
 
         if (!isValid) {
-          throw new Error("Invalid password");
+          return null
         }
 
         return {
@@ -71,6 +72,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: user.email,
       
       })
+
+    await Skill.create({
+      userId:newUser._id,
+      skills:[]
+    })
+
+
 
       user.id = newUser._id.toString()
 }else{
