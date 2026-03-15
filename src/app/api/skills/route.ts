@@ -24,6 +24,31 @@ if(!skillDoc){
   return NextResponse.json({skills:[]})
 
 }
+
+
+const today = new Date().toDateString()
+let needReset = false 
+
+skillDoc.skills.forEach((skill:any)=> {
+  if(skill.lastBattleDate){
+    const lastDate = new Date(skill.lastBattleDate).toDateString()
+
+
+     if( lastDate !== today){
+  skill.todayMinutes = 0
+  skill.completedToday = false
+  needReset = true
+  }
+  }
+  
+
+});
+
+if(needReset){
+  await skillDoc.save()
+}
+
+
 return NextResponse.json(skillDoc.skills)
 
   } catch (error) {

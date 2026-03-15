@@ -49,11 +49,7 @@ export default function BattlePage() {
 
     const updatedSkill = await res.json();
 
-    setSkills((prev) =>
-      prev.map((skill) =>
-        skill._id === id ? updatedSkill : skill
-      )
-    );
+    fetchSkills()
 
     setEditingId(null);
   } catch (error) {
@@ -77,7 +73,7 @@ export default function BattlePage() {
       throw new Error("Failed to delete");
     }
 
-    setSkills((prev) => prev.filter((skill) => skill._id !== id));
+  fetchSkills()
 
     setEditingId(null);
   } catch (error) {
@@ -128,6 +124,8 @@ export default function BattlePage() {
     }
   };
 
+
+  
   useEffect(() => {
     fetchSkills();
   }, []);

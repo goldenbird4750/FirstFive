@@ -1,24 +1,54 @@
 import { NextResponse } from "next/server";
 import { connectDb } from "@/lib/mongodb";
 import Skill from "@/models/skill";
+import { auth } from "@/lib/auth";
+
 
 export async function PATCH(req: Request, context: any) {
   try {
+     const  session = await auth()
+
+     if(!session?.user?.id){
+      return NextResponse.json(
+        {error:"unauthorized"},
+        {status:401}
+      )
+     }
+
     await connectDb();
 
     const params = await context.params;
     const id = params.id;
 
     const body = await req.json();
-    const { minutesToAdd, battleIncrement,name } = body;
+    const { minutesToAdd, battleIncrement, name } = body;
 
-    const skill = await Skill.findById(id);
+      const skillDoc = await Skill.findOne({userId:session.user.id})
+   if(!skillDoc){
+    return NextResponse.json(
+      {error:"skill document not found"}
+      ,{status:404}
+    )
+   }
 
-    if (!skill) {
-      return NextResponse.json({ error: "Skill not found" }, { status: 404 });
-    }
+   const skill = skillDoc.skills.find(
+    (s:any) => s._id.toString() === id  
+   )
 
-    let shouldIncrementBattle = false;
+   if(!skill){
+    return NextResponse.json(
+      {error:"skill not found"},
+      {status:404}
+    )
+   }
+
+
+
+
+
+
+
+    
  
 
     if (battleIncrement && battleIncrement > 0) {
@@ -26,16 +56,14 @@ export async function PATCH(req: Request, context: any) {
       const last = skill.lastBattleDate;
 
       if (!last || new Date(last).toDateString() !== today.toDateString()) {
-        shouldIncrementBattle = true;
-      }
-
-      if (shouldIncrementBattle) {
-        skill.battleCount += 1;
+         skill.battleCount += 1;
         skill.completedToday = true;
         skill.lastBattleDate = today;
        skill.totalMinutes += 5;
       skill.todayMinutes += 5;
       }
+
+      
     }
     if (minutesToAdd && minutesToAdd > 0) {
       
@@ -52,9 +80,9 @@ export async function PATCH(req: Request, context: any) {
 
 
 
-    await skill.save();
+    await skillDoc.save();
 
-    return NextResponse.json(skill);
+  return NextResponse.json({success:true});
   } catch (error) {
     return NextResponse.json(
       { error: "failed toupdate skill" },
@@ -67,17 +95,37 @@ export async function PATCH(req: Request, context: any) {
 export async function DELETE(req:Request,
 context:any
 ) {
+
+
+     const  session = await auth()
+
+     if(!session?.user?.id){
+      return NextResponse.json(
+        {error:"unauthorized"},
+        {status:401}
+      )
+     }
+
   await connectDb()
+
+
  const params = await context.params;
     const id = params.id
-  const deletedSkill = await Skill.findByIdAndDelete(id);
-  if(!deletedSkill){
+
+      const skillDoc = await Skill.findOne({userId:session.user.id})
+   if(!skillDoc){
     return NextResponse.json(
-      {error:"skill not found"},
-      {status:404}
+      {error:"skill document not found"}
+      ,{status:404}
     )
-  }
+   }
 
+   
 
+   skillDoc.skills = skillDoc.skills.filter(
+    (skill:any)=> skill._id.toString()  !== id
+   )
+await skillDoc.save()
+  
   return NextResponse.json({success:true})
 }
