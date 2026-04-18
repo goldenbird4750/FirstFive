@@ -228,8 +228,6 @@ export default function BattlePage() {
   };
 
 
-
-
   const handleInfiniteFinish = async () => {
     if (isUpdating) return;
     setIsUpdating(true)
