@@ -28,12 +28,12 @@ export default function RootLayout({
                       
               {/* Navigation */}
               <nav className="flex items-center gap-6 text-lg text-gray-300 " >
-                <Link href="/" className="hover:text-white transition">
+                {/* <Link href="/" className="hover:text-white transition">
                   Foundation
                 </Link>
                 <Link href="/mindset" className="hover:text-white transition">
                  Mindset
-                </Link>
+                </Link> */}
                 <Link href="/battle" className="hover:text-white transition">
                   Action
                 </Link>
