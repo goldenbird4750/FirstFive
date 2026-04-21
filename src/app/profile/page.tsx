@@ -1,6 +1,14 @@
 
 "use client"
+import { signOut , useSession} from "next-auth/react";
 import { useEffect, useState } from "react";
+
+
+
+interface UserData{
+  name:string ;
+  createdAt:string;
+}
 
 interface profileDataType{
    name: string;
@@ -21,9 +29,10 @@ interface SkillCardProps{
 }
 
 export default function ProfilePage() {
-
+ 
 const [skills,setSkills]=useState<profileDataType[]>([])
-
+const [user,setUser]=useState<UserData|null>(null)
+const {data: Session,status} = useSession()
 
 const totalMinutes = skills.reduce(
   (sum,skill)=> sum + skill.totalMinutes,
@@ -38,7 +47,26 @@ const todayTotal = skills.reduce(
   0
 )
 
+useEffect(
+  ()=>{
+    if(status !== "authenticated") return ;
 
+    const fetchUser = async ()=>{
+      try {
+        const res = await fetch("/api/user/profile")
+        if(!res.ok) return ;
+        const data = await res.json();
+        setUser(data)
+
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+fetchUser();
+
+  } ,[status]
+)
 
 useEffect(
   ()=>{
@@ -58,6 +86,33 @@ fetchSkills();
   }
   ,[])
 
+  function getMembershipDuration(dateString: string): string {
+  const created = new Date(dateString);
+  const now = new Date();
+
+  const diffMs = now.getTime() - created.getTime();
+
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const months = Math.floor(days / 30);
+
+  const remainingDays = days % 30;
+
+  return `Member for ${months} months ${remainingDays} days`;
+}
+
+
+  const name = user?.name || "Username"
+
+  const memberText = user?.createdAt ? getMembershipDuration(user.createdAt): "Member for -"
+
+  if(status === "loading"){
+    return <p 
+    className="p-4 text-sm text-gray-400 "
+    >Loading ...</p>
+  }
+
+
+
 
 
   return (
@@ -68,10 +123,14 @@ fetchSkills();
         <div className="flex items-center gap-6">
           <div className="w-20 h-20 rounded-full bg-gray-700"></div>
           <div>
-            <h2 className="text-2xl font-semibold">Ravi</h2>
+            <h2 className="text-2xl font-semibold">{name}</h2>
             <p className="text-gray-400 text-sm">
-              Member for 6 months 30 days
+              {memberText}
             </p>  
+            <div><button
+            onClick={()=>signOut({callbackUrl:"/"})}
+            className="mt-3 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm"
+            >Logout</button></div>
           </div>
         </div>
       </div>

@@ -189,7 +189,7 @@ export default function LandingPage() {
       {/* FOOTER */}
       <footer className="border-t border-white/10 text-center py-8 text-white/30 text-sm px-8">
         <div>
-          <span className="text-indigo-400 font-bold">5Min</span>Shift — Remove action resistance. One session at a time.
+          <span className="text-indigo-400 font-bold">5Min</span>Shift — Remove action resistance
         </div>
       </footer>
 
