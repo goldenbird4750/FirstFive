@@ -2,7 +2,7 @@
 "use client"
 import { signOut , useSession} from "next-auth/react";
 import { useEffect, useState } from "react";
-
+import  {useRouter} from "next/navigation";
 
 
 interface UserData{
@@ -33,19 +33,58 @@ export default function ProfilePage() {
 const [skills,setSkills]=useState<profileDataType[]>([])
 const [user,setUser]=useState<UserData|null>(null)
 const {data: Session,status} = useSession()
-
-const totalMinutes = skills.reduce(
+const router = useRouter()
+let totalMinutes;
+let totalBattles;
+let todayTotal;
+if(status =="authenticated"){
+totalMinutes = skills.reduce(
   (sum,skill)=> sum + skill.totalMinutes,
   0
 )
-const totalBattles = skills.reduce(
+totalBattles = skills.reduce(
   (sum,skill)=> sum + skill.battleCount,
   0
 )
-const todayTotal = skills.reduce(
+todayTotal = skills.reduce(
   (sum,skill)=> sum + skill.todayMinutes,
   0
 )
+
+}
+
+else{ 
+   totalMinutes = 0
+   totalBattles = 0
+   todayTotal = 0
+}
+
+function getDummySkills() {
+  return [
+    {
+      _id: "dummy-1",
+      name: "Skill 1",
+      totalMinutes: 0,
+      todayMinutes: 0,
+      battleCount: 0,
+    },
+    {
+      _id: "dummy-2",
+      name: "Skill 2",
+      totalMinutes: 0,
+      todayMinutes: 0,
+      battleCount: 0,
+    },
+    {
+      _id: "dummy-3",
+      name: "Skill 3",
+      totalMinutes: 0,
+      todayMinutes: 0,
+      battleCount: 0,
+    },
+  ];
+}
+
 
 useEffect(
   ()=>{
@@ -127,10 +166,23 @@ fetchSkills();
             <p className="text-gray-400 text-sm">
               {memberText}
             </p>  
-            <div><button
-            onClick={()=>signOut({callbackUrl:"/"})}
-            className="mt-3 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm"
-            >Logout</button></div>
+           {status === "authenticated" ? (
+  <button
+    onClick={() => signOut({ callbackUrl: "/" })}
+    className="mt-3 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm"
+  >
+    Logout
+  </button>
+) : status === "unauthenticated" ? (
+  <button
+    onClick={() => router.push("/signup")}
+    className="mt-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm"
+  >
+    Create Account
+  </button>
+) : (
+  <p className="mt-3 text-sm text-gray-400">Loading...</p>
+)}
           </div>
         </div>
       </div>
@@ -161,7 +213,18 @@ fetchSkills();
      
       <div className="space-y-5">
 
-    {
+<div className="space-y-5">
+  {(status === "authenticated" ? skills : getDummySkills()).map((skill) => (
+    <SkillCard
+      key={skill._id}
+      name={skill.name}
+      totalMinutes={skill.totalMinutes}
+      todayMinutes={skill.todayMinutes}
+      battleCount={skill.battleCount}
+    />
+  ))}
+</div>
+    {/* {
       skills.map((skill)=>(
         <SkillCard
   key={skill._id}
@@ -174,7 +237,7 @@ fetchSkills();
         
         />
       ))
-    }
+    } */}
 
       </div>
       

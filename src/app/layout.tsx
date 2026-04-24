@@ -1,6 +1,6 @@
 import "./globals.css";
 import Link from "next/link";
-
+import Providers from "./providers";
 export const metadata = {
   title: "First Five",
   description: "Convert resistance into action",
@@ -13,6 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <Providers>
       <body >
         <div className="bg-[#0f172a] text-white antialiased" >
 
@@ -59,6 +60,7 @@ export default function RootLayout({
         </div>
         </div>
       </body>
+      </Providers>
     </html>
   );
 }
