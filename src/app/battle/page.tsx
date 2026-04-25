@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import { useSession } from "next-auth/react";
+import AuthRequired from "@/components/AuthRequired";
 type Skill = {
   _id: string;
   name: string;
@@ -26,6 +27,61 @@ export default function BattlePage() {
   const [infiniteSeconds, setInfiniteSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false)
+  const { data: Session, status } = useSession()
+
+
+
+
+
+    useEffect(() => {
+
+if (status!== "authenticated") return;
+
+      fetchSkills();
+    }, [status]);
+  
+
+
+
+  // 5-minute countdown
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+
+    if (view === "five" && isRunning && fiveSeconds > 0) {
+      timer = setInterval(() => {
+        setFiveSeconds((prev) => prev - 1);
+      }, 10);
+    }
+
+    if (view === "five" && fiveSeconds === 0) {
+      if (isUpdating) return
+      setIsRunning(false);
+      setView("badge");
+
+
+      if (activeSkill?._id) {
+        setIsUpdating(true)
+        updateSkillUpdate(activeSkill._id)
+        setIsUpdating(false)
+      }
+    }
+
+    return () => clearInterval(timer);
+  }, [view, isRunning, fiveSeconds]);
+
+  // Infinite timer
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (view === "infinite" && isRunning) {
+      timer = setInterval(() => {
+        setInfiniteSeconds((prev) => prev + 1);
+      }, 10);
+    }
+
+    return () => clearInterval(timer);
+  }, [view, isRunning]);
 
 
 
@@ -126,49 +182,7 @@ export default function BattlePage() {
 
 
 
-  useEffect(() => {
-    fetchSkills();
-  }, []);
 
-  // 5-minute countdown
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-
-
-    if (view === "five" && isRunning && fiveSeconds > 0) {
-      timer = setInterval(() => {
-        setFiveSeconds((prev) => prev - 1);
-      }, 10);
-    }
-
-    if (view === "five" && fiveSeconds === 0) {
-      if (isUpdating) return
-      setIsRunning(false);
-      setView("badge");
-
-
-      if (activeSkill?._id) {
-        setIsUpdating(true)
-        updateSkillUpdate(activeSkill._id)
-        setIsUpdating(false)
-      }
-    }
-
-    return () => clearInterval(timer);
-  }, [view, isRunning, fiveSeconds]);
-
-  // Infinite timer
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-
-    if (view === "infinite" && isRunning) {
-      timer = setInterval(() => {
-        setInfiniteSeconds((prev) => prev + 1);
-      }, 10);
-    }
-
-    return () => clearInterval(timer);
-  }, [view, isRunning]);
 
   const formatTime = (sec: number) => {
     const m = Math.floor(sec / 60);
@@ -270,7 +284,11 @@ export default function BattlePage() {
     setIsUpdating(false)
   };
   // ---------------- UI STATES ----------------
-
+  if (status == "unauthenticated") {
+    return <div className="space-y-8">
+      <AuthRequired />
+    </div>
+  }
   if (view === "five") {
     return (
       <div className="text-center space-y-6">
@@ -457,6 +475,7 @@ export default function BattlePage() {
         )}
 
         <button
+          disabled={status !== "authenticated"}
           onClick={() => {
             if (!showInput) {
               setShowInput(true);
@@ -471,4 +490,5 @@ export default function BattlePage() {
       </div>
     </div>
   );
+
 }
