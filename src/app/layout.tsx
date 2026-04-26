@@ -26,9 +26,9 @@ export default function RootLayout({
             <div className="max-w-4xl mx-auto flex items-center justify-between px-6 py-4">
                   
               {/* Logo */}
-              <h1 className="text-xl font-semibold tracking-wide">
-                First Five
-              </h1>
+              <div className="text-2xl">
+          <span className="text-indigo-400 font-bold">5Min</span>Shift 
+        </div>
                       
               {/* Navigation */}
               <nav className="flex items-center gap-6 text-lg text-gray-300 " >

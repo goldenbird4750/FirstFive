@@ -117,29 +117,8 @@ export default function LandingPage() {
           ))}
         </div>
 
-        {/* Consistency tracker preview */}
-        <div className="mt-10 bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
-          <p className="text-white/40 text-xs uppercase tracking-widest mb-4 font-semibold">
-            Your consistency tracker
-          </p>
-          <div className="flex justify-center gap-2 flex-wrap max-w-md mx-auto mb-4">
-            {Array.from({ length: 30 }).map((_, i) => (
-              <div
-                key={i}
-                className={`w-7 h-7 rounded-md ${
-                  i < 22
-                    ? i % 5 === 4
-                      ? "bg-indigo-300"
-                      : "bg-indigo-600"
-                    : "bg-white/10"
-                }`}
-              />
-            ))}
-          </div>
-          <p className="text-white/40 text-sm">
-            Every session logged. Every streak visible. Every win counted.
-          </p>
-        </div>
+
+    
       </section>
 
       {/* URGENCY */}

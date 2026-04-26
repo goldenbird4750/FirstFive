@@ -23,7 +23,7 @@ interface SkillCardProps{
    name: string;
   totalMinutes: number
   todayMinutes: number;
-  battleCount: number;
+
 
  
 }
@@ -161,7 +161,9 @@ fetchSkills();
       {/* Profile Header */}
       <div className="bg-[#111827] rounded-2xl p-6 shadow-lg border border-gray-800">
         <div className="flex items-center gap-6">
-          <div className="w-20 h-20 rounded-full bg-gray-700"></div>
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center text-2xl font-bold text-white flex-shrink-0">
+          {name.charAt(0).toUpperCase()}
+        </div>
           <div>
             <h2 className="text-2xl font-semibold">{name}</h2>
             <p className="text-gray-400 text-sm">
@@ -192,18 +194,12 @@ fetchSkills();
       <div className="flex gap-4 ">
 
         <div className="   flex-1 bg-[#111827] rounded-xl p-6 border border-gray-800 text-center">
-          <p className="text-gray-400 text-sm">total minutes</p>
+          <p className="text-gray-400 text-sm">Total Minutes</p>
           <p className="text-3xl  font-bold mt-2">{totalMinutes}</p>
         </div>
 
-        <div className=" flex-1 bg-[#111827] rounded-xl p-6 border border-gray-800 text-center">
-          <p className="text-gray-400 text-sm">Total Battle Count</p>
-          <p className="text-3xl font-bold mt-2 ">
-             {totalBattles}
-          </p>
-        </div>
         <div className="bg-[#111827] flex-1 rounded-xl p-6 border border-gray-800 text-center">
-          <p className="text-gray-400 text-sm">Total TODAY work</p>
+          <p className="text-gray-400 text-sm">Total TODAY Action</p>
           <p className="text-3xl font-bold mt-2 ">
              {todayTotal}
           </p>
@@ -221,7 +217,7 @@ fetchSkills();
       name={skill.name}
       totalMinutes={skill.totalMinutes}
       todayMinutes={skill.todayMinutes}
-      battleCount={skill.battleCount}
+    
     />
   ))}
 </div>
@@ -252,7 +248,7 @@ function SkillCard({
   name,
   todayMinutes,
   totalMinutes,
-  battleCount
+
 }: SkillCardProps) {
   return (
     <div className="bg-[#111827] rounded-xl p-6 border border-gray-800 flex justify-between items-center">
@@ -267,10 +263,7 @@ function SkillCard({
         </p>
       </div>
 
-      <div className="text-yellow-400 font-semibold text-lg">
-        🛡 {battleCount}
-      </div>
-
+      
     </div>
   );
 }
