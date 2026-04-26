@@ -22,14 +22,7 @@ password:{
 type:String,
 required:false
 },
-lastStepDate:{
-  type:Date,
-  default:null,
-},
-completedSteps:{
-  type:[Number],
-  default:[]
-}
+
   },{timestamps:true});
   
   export default mongoose.models.user || mongoose.model("user",UserSchema)
