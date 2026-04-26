@@ -23,7 +23,7 @@ export default function BattlePage() {
 
   const [view, setView] = useState<View>("list");
 
-  const [fiveSeconds, setFiveSeconds] = useState(10);
+  const [fiveSeconds, setFiveSeconds] = useState(300);
   const [infiniteSeconds, setInfiniteSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false)
@@ -51,7 +51,7 @@ if (status!== "authenticated") return;
     if (view === "five" && isRunning && fiveSeconds > 0) {
       timer = setInterval(() => {
         setFiveSeconds((prev) => prev - 1);
-      }, 10);
+      }, 1000);
     }
 
     if (view === "five" && fiveSeconds === 0) {
@@ -77,7 +77,7 @@ if (status!== "authenticated") return;
     if (view === "infinite" && isRunning) {
       timer = setInterval(() => {
         setInfiniteSeconds((prev) => prev + 1);
-      }, 10);
+      }, 1000);
     }
 
     return () => clearInterval(timer);
