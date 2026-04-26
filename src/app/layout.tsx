@@ -1,6 +1,7 @@
 import "./globals.css";
 import Link from "next/link";
 import Providers from "./providers";
+import { Analytics } from "@vercel/analytics/next"
 export const metadata = {
   title: "5Min-Shift",
   description: "Convert resistance into action",
@@ -62,6 +63,7 @@ export default function RootLayout({
       
         </div>
         </div>
+        <Analytics/>
       </body>
       </Providers>
     </html>
