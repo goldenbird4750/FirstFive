@@ -2,8 +2,11 @@ import "./globals.css";
 import Link from "next/link";
 import Providers from "./providers";
 export const metadata = {
-  title: "First Five",
+  title: "5Min-Shift",
   description: "Convert resistance into action",
+  icons:{
+    icon:"/favicon2.ico"
+  }
 };
 
 export default function RootLayout({
