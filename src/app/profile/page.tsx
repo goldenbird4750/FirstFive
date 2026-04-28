@@ -1,152 +1,152 @@
 
 "use client"
-import { signOut , useSession} from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import  {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 
 
-interface UserData{
-  name:string ;
-  createdAt:string;
+interface UserData {
+  name: string;
+  createdAt: string;
 }
 
-interface profileDataType{
-   name: string;
+interface profileDataType {
+  name: string;
   totalMinutes: number
   todayMinutes: number;
   battleCount: number;
- _id:string
- 
+  _id: string
+
 }
 
-interface SkillCardProps{
-   name: string;
+interface SkillCardProps {
+  name: string;
   totalMinutes: number
   todayMinutes: number;
 
 
- 
+
 }
 
 export default function ProfilePage() {
- 
-const [skills,setSkills]=useState<profileDataType[]>([])
-const [user,setUser]=useState<UserData|null>(null)
-const {data: Session,status} = useSession()
-const router = useRouter()
-let totalMinutes;
-let totalBattles;
-let todayTotal;
-if(status =="authenticated"){
-totalMinutes = skills.reduce(
-  (sum,skill)=> sum + skill.totalMinutes,
-  0
-)
-totalBattles = skills.reduce(
-  (sum,skill)=> sum + skill.battleCount,
-  0
-)
-todayTotal = skills.reduce(
-  (sum,skill)=> sum + skill.todayMinutes,
-  0
-)
 
-}
-
-else{ 
-   totalMinutes = 0
-   totalBattles = 0
-   todayTotal = 0
-}
-
-function getDummySkills() {
-  return [
-    {
-      _id: "dummy-1",
-      name: "Skill 1",
-      totalMinutes: 0,
-      todayMinutes: 0,
-      battleCount: 0,
-    },
-    {
-      _id: "dummy-2",
-      name: "Skill 2",
-      totalMinutes: 0,
-      todayMinutes: 0,
-      battleCount: 0,
-    },
-    {
-      _id: "dummy-3",
-      name: "Skill 3",
-      totalMinutes: 0,
-      todayMinutes: 0,
-      battleCount: 0,
-    },
-  ];
-}
-
-
-useEffect(
-  ()=>{
-    if(status !== "authenticated") return ;
-
-    const fetchUser = async ()=>{
-      try {
-        const res = await fetch("/api/user/profile")
-        if(!res.ok) return ;
-        const data = await res.json();
-        setUser(data)
-
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
-fetchUser();
-
-  } ,[status]
-)
-
-useEffect(
-  ()=>{
-
-    const fetchSkills = async ()=>{
-      try {
-        const res = await fetch("/api/skills")
-        const data = await res.json()
-        setSkills(data);
-      } catch (error) {
-        console.log("Failed to fetch skill in profile",error)
-      }
-    }
-
-fetchSkills();
+  const [skills, setSkills] = useState<profileDataType[]>([])
+  const [user, setUser] = useState<UserData | null>(null)
+  const { data: Session, status } = useSession()
+  const router = useRouter()
+  let totalMinutes;
+  let totalBattles;
+  let todayTotal;
+  if (status == "authenticated") {
+    totalMinutes = skills.reduce(
+      (sum, skill) => sum + skill.totalMinutes,
+      0
+    )
+    totalBattles = skills.reduce(
+      (sum, skill) => sum + skill.battleCount,
+      0
+    )
+    todayTotal = skills.reduce(
+      (sum, skill) => sum + skill.todayMinutes,
+      0
+    )
 
   }
-  ,[])
+
+  else {
+    totalMinutes = 0
+    totalBattles = 0
+    todayTotal = 0
+  }
+
+  function getDummySkills() {
+    return [
+      {
+        _id: "dummy-1",
+        name: "Skill 1",
+        totalMinutes: 0,
+        todayMinutes: 0,
+        battleCount: 0,
+      },
+      {
+        _id: "dummy-2",
+        name: "Skill 2",
+        totalMinutes: 0,
+        todayMinutes: 0,
+        battleCount: 0,
+      },
+      {
+        _id: "dummy-3",
+        name: "Skill 3",
+        totalMinutes: 0,
+        todayMinutes: 0,
+        battleCount: 0,
+      },
+    ];
+  }
+
+
+  useEffect(
+    () => {
+      if (status !== "authenticated") return;
+
+      const fetchUser = async () => {
+        try {
+          const res = await fetch("/api/user/profile")
+          if (!res.ok) return;
+          const data = await res.json();
+          setUser(data)
+
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      fetchUser();
+
+    }, [status]
+  )
+
+  useEffect(
+    () => {
+
+      const fetchSkills = async () => {
+        try {
+          const res = await fetch("/api/skills")
+          const data = await res.json()
+          setSkills(data);
+        } catch (error) {
+          console.log("Failed to fetch skill in profile", error)
+        }
+      }
+
+      fetchSkills();
+
+    }
+    , [])
 
   function getMembershipDuration(dateString: string): string {
-  const created = new Date(dateString);
-  const now = new Date();
+    const created = new Date(dateString);
+    const now = new Date();
 
-  const diffMs = now.getTime() - created.getTime();
+    const diffMs = now.getTime() - created.getTime();
 
-  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  const months = Math.floor(days / 30);
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const months = Math.floor(days / 30);
 
-  const remainingDays = days % 30;
+    const remainingDays = days % 30;
 
-  return `Member for ${months} months ${remainingDays} days`;
-}
+    return `Member for ${months} months ${remainingDays} days`;
+  }
 
 
   const name = user?.name || "Username"
 
-  const memberText = user?.createdAt ? getMembershipDuration(user.createdAt): "Member for -"
+  const memberText = user?.createdAt ? getMembershipDuration(user.createdAt) : "Member for -"
 
-  if(status === "loading"){
-    return <p 
-    className="p-4 text-sm text-gray-400 "
+  if (status === "loading") {
+    return <p
+      className="p-4 text-sm text-gray-400 "
     >Loading ...</p>
   }
 
@@ -155,37 +155,37 @@ fetchSkills();
 
 
   return (
-   
+
     <div className="space-y-10">
 
       {/* Profile Header */}
       <div className="bg-[#111827] rounded-2xl p-6 shadow-lg border border-gray-800">
         <div className="flex items-center gap-6">
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center text-2xl font-bold text-white flex-shrink-0">
-          {name.charAt(0).toUpperCase()}
-        </div>
+            {name.charAt(0).toUpperCase()}
+          </div>
           <div>
             <h2 className="text-2xl font-semibold">{name}</h2>
             <p className="text-gray-400 text-sm">
               {memberText}
-            </p>  
-           {status === "authenticated" ? (
-  <button
-    onClick={() => signOut({ callbackUrl: "/" })}
-    className="mt-3 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm"
-  >
-    Logout
-  </button>
-) : status === "unauthenticated" ? (
-  <button
-    onClick={() => router.push("/signup")}
-    className="mt-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm"
-  >
-    Create Account To Save Progress
-  </button>
-) : (
-  <p className="mt-3 text-sm text-gray-400">Loading...</p>
-)}
+            </p>
+            {status === "authenticated" ? (
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="mt-3 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm"
+              >
+                Logout
+              </button>
+            ) : status === "unauthenticated" ? (
+              <button
+                onClick={() => router.push("/signup")}
+                className="mt-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm"
+              >
+                Create Account To Save Progress
+              </button>
+            ) : (
+              <p className="mt-3 text-sm text-gray-400">Loading...</p>
+            )}
           </div>
         </div>
       </div>
@@ -201,27 +201,27 @@ fetchSkills();
         <div className="bg-[#111827] flex-1 rounded-xl p-6 border border-gray-800 text-center">
           <p className="text-gray-400 text-sm">Total TODAY Action</p>
           <p className="text-3xl font-bold mt-2 ">
-             {todayTotal}
+            {todayTotal}
           </p>
         </div>
 
       </div>
 
-     
+
       <div className="space-y-5">
 
-<div className="space-y-5">
-  {(status === "authenticated" ? skills : getDummySkills()).map((skill) => (
-    <SkillCard
-      key={skill._id}
-      name={skill.name}
-      totalMinutes={skill.totalMinutes}
-      todayMinutes={skill.todayMinutes}
-    
-    />
-  ))}
-</div>
-    {/* {
+        <div className="space-y-5">
+          {(status === "authenticated" ? skills : getDummySkills()).map((skill) => (
+            <SkillCard
+              key={skill._id}
+              name={skill.name}
+              totalMinutes={skill.totalMinutes}
+              todayMinutes={skill.todayMinutes}
+
+            />
+          ))}
+        </div>
+        {/* {
       skills.map((skill)=>(
         <SkillCard
   key={skill._id}
@@ -237,7 +237,7 @@ fetchSkills();
     } */}
 
       </div>
-      
+
 
     </div>
   );
@@ -263,7 +263,7 @@ function SkillCard({
         </p>
       </div>
 
-      
+
     </div>
   );
 }

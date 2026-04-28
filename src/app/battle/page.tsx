@@ -33,13 +33,13 @@ export default function BattlePage() {
 
 
 
-    useEffect(() => {
+  useEffect(() => {
 
-if (status!== "authenticated") return;
+    if (status !== "authenticated") return;
 
-      fetchSkills();
-    }, [status]);
-  
+    fetchSkills();
+  }, [status]);
+
 
 
 
