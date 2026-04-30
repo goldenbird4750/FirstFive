@@ -51,7 +51,7 @@ export default function BattlePage() {
     if (view === "five" && isRunning && fiveSeconds > 0) {
       timer = setInterval(() => {
         setFiveSeconds((prev) => prev - 1);
-      }, 1000);
+      }, 10);
     }
 
     if (view === "five" && fiveSeconds === 0) {
@@ -77,7 +77,7 @@ export default function BattlePage() {
     if (view === "infinite" && isRunning) {
       timer = setInterval(() => {
         setInfiniteSeconds((prev) => prev + 1);
-      }, 1000);
+      }, 10);
     }
 
     return () => clearInterval(timer);
