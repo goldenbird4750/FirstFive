@@ -47,12 +47,12 @@ function getDaysOfYear(year: number): string[] {
 }
 
 function getCircleColor(value: number): string {
-  if (value === 0) return "#0f172a";
-  if (value === 1) return "#ABE9FF";
-  if (value === 2) return "#4DD0FF";
-  if (value === 3) return " #187AA1";
-  if (value === 4) return" #0C65A6";
-  return "#1e3a5f";
+  if (value === 0) return "#001421";
+  if (value === 1) return "#004069";
+  if (value === 2) return "#005082";
+  if (value === 3) return "#0063A1";
+  if (value === 4) return" #0081D1";
+   return "#00A1FF";
 }
 
 function getMembershipDuration(dateString: string): string {
@@ -118,7 +118,7 @@ function MainTracker({
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
           <h3 className="text-base font-semibold text-white">Consistency Tracker</h3>
-          <p className="text-xs text-gray-500 mt-0.5">Darker = more skills done that day</p>
+          <p className="text-xs text-gray-500 mt-0.5">Brighter = more skills done that day</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-400">
