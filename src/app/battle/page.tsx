@@ -51,7 +51,7 @@ export default function BattlePage() {
     if (view === "five" && isRunning && fiveSeconds > 0) {
       timer = setInterval(() => {
         setFiveSeconds((prev) => prev - 1);
-      },10);
+      }, 1000);
     }
 
     if (view === "five" && fiveSeconds === 0) {
@@ -77,7 +77,7 @@ export default function BattlePage() {
     if (view === "infinite" && isRunning) {
       timer = setInterval(() => {
         setInfiniteSeconds((prev) => prev + 1);
-      },10);
+      }, 1000);
     }
 
     return () => clearInterval(timer);
@@ -360,115 +360,26 @@ export default function BattlePage() {
   return (
     <div className="space-y-8">
       <h2 className="text-3xl text-center font-semibold">Today's Action</h2>
-<div className="space-y-4">
-  {skills.map((skill) => (
-    <div
-      key={skill._id}
-      className="bg-[#0f172a] border border-gray-800 p-6 rounded-xl flex flex-wrap justify-between items-center gap-y-3"
-    >
-      {editingId === skill._id ? (
-        <input
-          value={editedName}
-          onChange={(e) => setEditedName(e.target.value)}
-          autoFocus
-          className="bg-transparent border-b border-gray-500 outline-none text-white min-w-0"
-        />
-      ) : (
-        <span className="truncate min-w-0">{skill.name}</span>
-      )}
-
-      <div className="flex flex-wrap items-center gap-4">
-        {editingId === skill._id ? (
-          <div className="flex flex-wrap items-center gap-4">
-            <button
-              onClick={() => handleSave(skill._id)}
-              className="border border-gray-600 px-4 py-2 rounded-lg hover:bg-blue-500"
-            >
-              Save
-            </button>
-
-            <button
-              onClick={() => handleDelete(skill._id)}
-              className="border border-gray-600 px-4 py-2 rounded-lg hover:bg-blue-500"
-            >
-              Delete
-            </button>
-
-            <button
-              onClick={() => setEditingId(null)}
-              className="border border-gray-600 px-4 py-2 rounded-lg hover:bg-blue-500"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          !skill.completedToday ? (
-            <button
-              onClick={() => handleStart(skill)}
-              className="bg-blue-600 px-4 py-2 rounded-lg"
-            >
-              Start
-            </button>
-          ) : (
-            <div className="flex items-center gap-4">
-              <span className="text-green-400">✓ Done</span>
-              <button
-                onClick={() => handleAddMore(skill)}
-                className="border border-gray-600 px-4 py-2 rounded-lg"
-              >
-                Add More
-              </button>
-            </div>
-          )
-        )}
-
-        {editingId !== skill._id && (
-          <button
-            onClick={() => {
-              setEditingId(skill._id);
-              setEditedName(skill.name);
-            }}
-            className="hover:bg-blue-500 px-4 py-2 rounded-lg"
-          >
-            &#8942;
-          </button>
-        )}
-      </div>
-    </div>
-  ))}
-</div>
-      {/* <div className="space-y-4">
+      <div className="space-y-4">
         {skills.map((skill) => (
           <div
             key={skill._id}
-            className="bg-[#0f172a] border border-gray-800 p-6 rounded-xl flex justify-between items-center"
+            className="bg-[#0f172a] border border-gray-800 p-6 rounded-xl flex flex-wrap justify-between items-center gap-y-3"
           >
-            {
-              editingId === skill._id ? (
-                <input
-                  value={editedName}
-                  onChange={(e) => setEditedName(e.target.value)}
-                  autoFocus
-                  className="bg-transparent border-b border-gray-500
-                   outline-none text-white"
-                />
-              ) : (
-                <span>{skill.name}</span>
-              )
-            }
+            {editingId === skill._id ? (
+              <input
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                autoFocus
+                className="bg-transparent border-b border-gray-500 outline-none text-white min-w-0"
+              />
+            ) : (
+              <span className="truncate min-w-0">{skill.name}</span>
+            )}
 
-
-
-
-
-
-
-
-
-            <div className="flex items-center gap-4 ">
+            <div className="flex flex-wrap items-center gap-4">
               {editingId === skill._id ? (
-                <div className="flex items-center gap-4">
-
+                <div className="flex flex-wrap items-center gap-4">
                   <button
                     onClick={() => handleSave(skill._id)}
                     className="border border-gray-600 px-4 py-2 rounded-lg hover:bg-blue-500"
@@ -489,7 +400,6 @@ export default function BattlePage() {
                   >
                     Cancel
                   </button>
-
                 </div>
               ) : (
                 !skill.completedToday ? (
@@ -512,10 +422,6 @@ export default function BattlePage() {
                 )
               )}
 
-
-
-
-
               {editingId !== skill._id && (
                 <button
                   onClick={() => {
@@ -527,17 +433,10 @@ export default function BattlePage() {
                   &#8942;
                 </button>
               )}
-
-
             </div>
-
-
           </div>
-
-        )
-        )}
-      </div> */}
-
+        ))}
+      </div>
 
 
       <div className="text-center space-y-4 pt-6">
