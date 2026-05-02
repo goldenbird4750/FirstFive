@@ -48,10 +48,10 @@ function getDaysOfYear(year: number): string[] {
 
 function getCircleColor(value: number): string {
   if (value === 0) return "#001421";
-  if (value === 1) return "#004069";
-  if (value === 2) return "#005082";
-  if (value === 3) return "#0063A1";
-  if (value === 4) return" #0081D1";
+  if (value <= 5) return "#004069";
+  if (value <= 15) return "#005082";
+  if (value <= 30) return "#0063A1";
+  if (value <= 60) return" #0081D1";
    return "#00A1FF";
 }
 
@@ -168,11 +168,11 @@ function MainTracker({
               <div key={wi} className="flex flex-col" style={{ gap: "3px", marginRight: "3px" }}>
                 {week.map((day, di) => {
                   if (!day) return <div key={`e-${di}`} style={{ width: "15px", height: "15px" }} />;
-                  const value = Math.min(consistencyData[day] || 0, 5);
+               const value = consistencyData[day] || 0;
                   return (
                     <div
                       key={day}
-                      title={`${day}: ${consistencyData[day] || 0} sessions`}
+                      title={`${day}: ${consistencyData[day] || 0} min`}
                       style={{
                         width: "15px", height: "15px",
                         borderRadius: "50%",
@@ -193,7 +193,7 @@ function MainTracker({
 
           <div className="flex items-center gap-2 mt-3 justify-end">
             <span className="text-xs text-gray-600">Less</span>
-            {[0, 1, 2, 3, 4, 5].map((n) => (
+           {[0, 5, 15, 30, 60, 90].map((n) => (
               <div key={n} style={{
                 width: "12px", height: "12px", borderRadius: "50%",
                 backgroundColor: getCircleColor(n),
@@ -232,11 +232,11 @@ function SkillCard({ name, totalMinutes, todayMinutes, dailyLog }: SkillCardProp
       <div className="overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
         <div className="flex gap-1" style={{ width: "max-content" }}>
           {last30.map((day) => {
-            const value = Math.min(dailyLog[day] || 0, 5);
+            const value = dailyLog[day] || 0;
             return (
               <div
                 key={day}
-                title={`${day}: ${dailyLog[day] || 0} sessions`}
+                title={`${day}: ${dailyLog[day] || 0} min`}
                 style={{
                   width: "14px", height: "14px",
                   borderRadius: "50%",

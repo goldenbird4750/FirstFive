@@ -62,7 +62,8 @@ export async function PATCH(req: Request, context: any) {
        skill.totalMinutes += 5;
       skill.todayMinutes += 5;
       const todayKey = today.toISOString().split("T")[0];
-skill.dailyLog.set(todayKey, 1);
+      const currentMinutes = skill.dailyLog?.get(todayKey) || 0;
+skill.dailyLog.set(todayKey, currentMinutes+ 5);
       }
 
       
@@ -72,17 +73,8 @@ skill.dailyLog.set(todayKey, 1);
       skill.totalMinutes += minutesToAdd;
       skill.todayMinutes += minutesToAdd;
       const todayKey = new Date().toISOString().split("T")[0];
-const currentVal = skill.dailyLog?.get(todayKey) || 0;
-
-const totalToday = skill.todayMinutes; // already updated above
-let newVal;
-if (totalToday >= 60) newVal = 5;
-else if (totalToday >= 45) newVal = 4;
-else if (totalToday >= 30) newVal = 3;
-else if (totalToday >= 15) newVal = 2;
-else newVal = 1;
-
-skill.dailyLog.set(todayKey, Math.max(currentVal, newVal));
+const currentMinutes = skill.dailyLog?.get(todayKey) || 0;
+skill.dailyLog.set(todayKey, currentMinutes + minutesToAdd);
       
     }
 
