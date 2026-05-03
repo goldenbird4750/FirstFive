@@ -10,7 +10,7 @@ export async function POST(req: Request) {
 
         await connectDb()
         const body = await req.json()
-        const {name,email,password} = body
+        const {name,email,password,onboardingAnswers} = body
         if (!name|| !email || !password){
           return NextResponse.json(
             {error:"all field are required"},
@@ -29,10 +29,14 @@ if(existingUser){
 
 const hashedPassword = await bcrypt.hash(password,10)
 
+
+
 const user = await User.create({
   name,
   email,
-  password:hashedPassword
+  password: hashedPassword,
+  // only save if answers exist
+  ...(onboardingAnswers && { onboardingAnswers }),
 })
 
 

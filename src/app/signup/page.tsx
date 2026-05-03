@@ -13,33 +13,44 @@ const [name,setName]= useState("")
 const [email,setEmail]= useState("")
 const [password,setPassword]= useState("")
 
-const handleSignup = async (e:React.FormEvent) =>{
+const handleSignup = async (e: React.FormEvent) => {
+  e.preventDefault()
 
-e.preventDefault()
+  // Read onboarding answers from localStorage
+  const savedAnswers = localStorage.getItem("5minshift_answers")
+  const onboardingAnswers = savedAnswers ? JSON.parse(savedAnswers) : null
 
-  const res = await fetch("/api/signup",
-    {method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        name,email,password
-      })
-    }
-  )
+  const res = await fetch("/api/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name,
+      email,
+      password,
+      onboardingAnswers, // ← send answers along with signup
+    }),
+  })
 
-const data = await res.json()
+  const data = await res.json()
 
-if(res.ok){
-  alert("account created")}
-else{
-  alert(data.error)
-  return
-}
+  if (res.ok) {
+    // Save username to localStorage for greeting
+    localStorage.setItem("5minshift_username", name)
+    // Clear onboarding localStorage — now saved in DB
+    localStorage.removeItem("5minshift_answers")
+    localStorage.removeItem("5minshift_onboarded")
+    localStorage.removeItem("5minshift_expiry")
+  } else {
+    alert(data.error)
+    return
+  }
 
-await signIn("credentials",{
-  email,password,redirect:true,callbackUrl:"/battle"
-})
-
-
+  await signIn("credentials", {
+    email,
+    password,
+    redirect: true,
+    callbackUrl: "/battle",
+  })
 }
 
   return (

@@ -1,197 +1,566 @@
-// app/page.tsx (or pages/index.tsx)
+"use client";
 
 import Link from "next/link";
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 
-export default function LandingPage() {
-  return (
-    <main className="min-h-screen text-white font-sans" style={{ backgroundColor: "#0f172a" }}>
+// ─── Types ───────────────────────────────────────────────
+type View = "mcq" | "chat";
 
-      {/* HERO */}
-      <section className="max-w-4xl mx-auto px-8 pt-28 pb-16 text-center">
-        <div className="inline-block bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
-          Stop waiting to feel motivated
-        </div>
+type Answers = {
+  skill?: string[];
+  currentLevel?: string[];
+  biggestBlock?: string[];
+  dailyTime?: string[];
+  whyMatters?: string[];
+};
 
-        <h1 className="text-5xl md:text-6xl font-extrabold leading-tight tracking-tight mb-6">
-          You don't need motivation.
-          <br />
-          <span className="text-indigo-400">You need 5 minutes.</span>
-        </h1>
+type Message = {
+  role: "user" | "ai";
+  content: string;
+  showSignupButton?: boolean;
+  showBattleButton?: boolean;
+};
 
-        <p className="text-lg text-white/60 max-w-2xl mx-auto leading-relaxed">
-          Action resistance is killing your goals. Science shows that starting —
-          even for just 5 minutes — rewires how you feel about the work.
-          5MinShift makes that first step effortless.
-        </p>
-      </section>
+type Question = {
+  id: keyof Answers;
+  question: string;
+  subtext: string;
+  options: string[];
+};
 
-      {/* PROBLEM */}
-      <section className="max-w-5xl mx-auto px-8 py-20">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Why you keep{" "}
-            <span className="text-red-400">not starting</span>
-          </h2>
-          <p className="text-white/50 max-w-xl mx-auto">
-            It's not laziness. It's not a lack of discipline. It's action
-            resistance — and it's happening to everyone.
-          </p>
-        </div>
+// ─── MCQ Questions ────────────────────────────────────────
+const questions: Question[] = [
+  {
+    id: "skill",
+    question: "What skill do you want to master?",
+    subtext: "Select all that apply",
+    options: [
+      "Public Speaking",
+      "Coding & Development",
+      "Writing & Content",
+      "Fitness & Health",
+      "A New Language",
+      "Music & Instrument",
+      "Business & Entrepreneurship",
+      "Something Else",
+    ],
+  },
+  {
+    id: "currentLevel",
+    question: "Where are you right now with this skill?",
+    subtext: "Select all that apply",
+    options: [
+      "Complete beginner — never tried",
+      "Tried a few times but stopped",
+      "I know basics but feel stuck",
+      "Intermediate but not progressing",
+    ],
+  },
+  {
+    id: "biggestBlock",
+    question: "What stops you from starting every day?",
+    subtext: "Select all that apply",
+    options: [
+      "I don't know where to begin",
+      "I start but lose focus quickly",
+      "I fear I'm not good enough",
+      "Life gets busy — no time",
+      "I get overwhelmed by how much there is",
+      "I just feel lazy honestly",
+    ],
+  },
+  {
+    id: "dailyTime",
+    question: "How much time can you realistically give daily?",
+    subtext: "Select all that apply",
+    options: [
+      "Just 5 minutes",
+      "15–30 minutes",
+      "30–60 minutes",
+      "1 hour or more",
+    ],
+  },
+  {
+    id: "whyMatters",
+    question: "Why does this skill matter to you?",
+    subtext: "Select all that apply",
+    options: [
+      "Career growth & better job",
+      "Personal confidence",
+      "Creative expression",
+      "To help others",
+      "Prove something to myself",
+      "Financial freedom",
+    ],
+  },
+];
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            {
-              emoji: "😶",
-              title: "You wait to feel ready",
-              desc: "You tell yourself you'll start when you're in the mood. That moment rarely comes.",
-            },
-            {
-              emoji: "📉",
-              title: "Goals die in silence",
-              desc: "Without daily micro-action, big goals feel abstract. Then they disappear.",
-            },
-            {
-              emoji: "🔁",
-              title: "Guilt creates more resistance",
-              desc: "Missing a day makes it harder to start the next. The cycle compounds.",
-            },
-          ].map((item) => (
+// ─── Chat Chips ───────────────────────────────────────────
+const CHAT_CHIPS = [
+  "😴 Feeling tired and unmotivated",
+  "😰 Feeling overwhelmed",
+  "🤷 Don't know where to start",
+  "😟 Fear of failing",
+  "📵 Too many distractions",
+  "⏰ No time to start",
+];
+
+// ─── localStorage helpers ─────────────────────────────────
+const STORAGE_KEYS = {
+  onboarded: "5minshift_onboarded",
+  answers: "5minshift_answers",
+  username: "5minshift_username",
+  expiry: "5minshift_expiry",
+};
+
+function saveWithExpiry(key: string, value: string, hours: number) {
+  const expiry = new Date().getTime() + hours * 60 * 60 * 1000;
+  localStorage.setItem(key, value);
+  localStorage.setItem(STORAGE_KEYS.expiry, String(expiry));
+}
+
+function isExpired(): boolean {
+  const expiry = localStorage.getItem(STORAGE_KEYS.expiry);
+  if (!expiry) return true;
+  return new Date().getTime() > Number(expiry);
+}
+
+function clearOnboarding() {
+  localStorage.removeItem(STORAGE_KEYS.onboarded);
+  localStorage.removeItem(STORAGE_KEYS.answers);
+  localStorage.removeItem(STORAGE_KEYS.expiry);
+}
+
+// ═══════════════════════════════════════════════════════════
+// Main Component
+// ═══════════════════════════════════════════════════════════
+export default function HomePage() {
+  const router = useRouter();
+
+  // ─── View state ─────────────────────────────────────────
+  const [view, setView] = useState<View | null>(null);
+
+  // ─── MCQ state ──────────────────────────────────────────
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<Answers>({});
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+
+  // ─── Chat state ─────────────────────────────────────────
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [userSkill, setUserSkill] = useState("");
+  const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  // ─── On mount ───────────────────────────────────────────
+  useEffect(() => {
+    const onboarded = localStorage.getItem(STORAGE_KEYS.onboarded);
+    const expired = isExpired();
+
+    if (expired && onboarded) {
+      clearOnboarding();
+      setView("mcq");
+      return;
+    }
+
+    const savedName = localStorage.getItem(STORAGE_KEYS.username) || "";
+    const savedAnswers = localStorage.getItem(STORAGE_KEYS.answers);
+    setUserName(savedName);
+
+    if (savedAnswers) {
+      const parsed = JSON.parse(savedAnswers) as Answers;
+      setUserSkill(parsed.skill?.join(", ") || "");
+    }
+
+    if (!onboarded) {
+      setView("mcq");
+    } else {
+      setView("chat");
+    }
+  }, []);
+
+  // ─── Auto scroll ────────────────────────────────────────
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading]);
+
+  // ─── Call AI ─────────────────────────────────────────────
+  const callAI = async (
+    payload:
+      | { isOnboarding: true; onboardingAnswers: Answers }
+      | { isOnboarding: false; messages: { role: string; content: string }[] }
+  ) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          content: data.message,
+          showSignupButton: data.showSignupButton || false,
+          showBattleButton: data.showBattleButton || false,
+        },
+      ]);
+    } catch (err) {
+      console.error(err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          content:
+            "Something went wrong. But don't let that stop you — open your skill and do 5 minutes right now.",
+          showBattleButton: true,
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ─── MCQ Handlers ────────────────────────────────────────
+  const handleToggleOption = (option: string) => {
+    setSelectedOptions((prev) =>
+      prev.includes(option)
+        ? prev.filter((o) => o !== option)
+        : [...prev, option]
+    );
+  };
+
+  const handleNext = async () => {
+    if (selectedOptions.length === 0) return;
+
+    const questionId = questions[currentQuestion].id;
+    const newAnswers = { ...answers, [questionId]: selectedOptions };
+    setAnswers(newAnswers);
+
+    if (currentQuestion === questions.length - 1) {
+      saveWithExpiry(
+        STORAGE_KEYS.answers,
+        JSON.stringify(newAnswers),
+        24
+      );
+      saveWithExpiry(STORAGE_KEYS.onboarded, "true", 24);
+
+      setView("chat");
+      setUserSkill(newAnswers.skill?.join(", ") || "");
+
+      await callAI({
+        isOnboarding: true,
+        onboardingAnswers: newAnswers,
+      });
+    } else {
+      setCurrentQuestion((prev) => prev + 1);
+      setSelectedOptions([]);
+    }
+  };
+
+  // ─── Chat Handlers ────────────────────────────────────────
+  const handleSendMessage = async (text: string) => {
+    if (!text.trim() || isLoading) return;
+
+    const userMsg: Message = { role: "user", content: text };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setInputText("");
+
+    const history = newMessages.map((m) => ({
+      role: m.role === "ai" ? "assistant" : "user",
+      content: m.content,
+    }));
+
+    await callAI({ isOnboarding: false, messages: history });
+  };
+
+  // ─── Null / loading state ────────────────────────────────
+  if (view === null) {
+    return (
+      <main
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: "#0f172a" }}
+      >
+        <div className="flex gap-2">
+          {[0, 1, 2].map((i) => (
             <div
-              key={item.title}
-              className="bg-white/5 border border-white/10 rounded-2xl p-6"
-            >
-              <div className="text-3xl mb-3">{item.emoji}</div>
-              <h3 className="font-semibold text-base mb-2">{item.title}</h3>
-              <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
-            </div>
+              key={i}
+              className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"
+              style={{ animationDelay: `${i * 0.15}s` }}
+            />
           ))}
         </div>
-      </section>
+      </main>
+    );
+  }
 
-      {/* SOLUTION */}
-      <section className="max-w-5xl mx-auto px-8 py-20">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            The fix is simpler than you think
-          </h2>
-          <p className="text-white/50 max-w-xl mx-auto">
-            5MinShift is built on one idea: just start. The feelings follow the
-            action — never the other way around.
-          </p>
-        </div>
+  // ═══════════════════════════════════════════════════════
+  // VIEW 1 — MCQ
+  // ═══════════════════════════════════════════════════════
+  if (view === "mcq") {
+    const progressPercent =
+      ((currentQuestion + 1) / questions.length) * 100;
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            {
-              step: "01",
-              title: "Set a goal",
-              desc: "Pick something you've been putting off. Any goal, any size.",
-              color: "text-indigo-400",
-            },
-            {
-              step: "02",
-              title: "Work for 5 minutes",
-              desc: "That's the only commitment. 5 minutes. The timer runs. You show up.",
-              color: "text-violet-400",
-            },
-            {
-              step: "03",
-              title: "Decide what's next",
-              desc: "Add more time, do more work, or quit — guilt-free. You already won by starting.",
-              color: "text-purple-400",
-            },
-          ].map((item) => (
-            <div
-              key={item.step}
-              className="bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden"
-            >
-              <div className="text-5xl font-black text-white/5 absolute top-4 right-5 select-none">
-                {item.step}
-              </div>
-              <div className={`text-sm font-bold uppercase tracking-widest mb-3 ${item.color}`}>
-                Step {item.step}
-              </div>
-              <h3 className="font-semibold text-base mb-2">{item.title}</h3>
-              <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
+    return (
+      <main
+        className="min-h-screen"
+        style={{ backgroundColor: "#0f172a" }}
+      >
+        <div className="max-w-2xl mx-auto px-8 py-20">
+
+          {/* Progress Bar */}
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-indigo-400 text-sm font-medium">
+                Step {currentQuestion + 1} of {questions.length}
+              </span>
+              <span className="text-white/40 text-sm">
+                {Math.round(progressPercent)}%
+              </span>
             </div>
-          ))}
-        </div>
-
-<div className="mt-10 bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
-          <p className="text-white/40 text-xs uppercase tracking-widest mb-4 font-semibold">
-            Your consistency tracker
-          </p>
-          <div className="flex justify-center gap-2 flex-wrap max-w-md mx-auto mb-4">
-            {Array.from({ length: 30 }).map((_, i) => (
+            <div className="w-full bg-white/10 rounded-full h-1 overflow-hidden">
               <div
-                key={i}
-                className={`w-7 h-7 rounded-md ${
-                  i < 22
-                    ? i % 5 === 4
-                      ? "bg-indigo-300"
-                      : "bg-indigo-600"
-                    : "bg-white/10"
-                }`}
+                className="bg-indigo-500 h-1 rounded-full transition-all duration-500"
+                style={{ width: `${progressPercent}%` }}
               />
+            </div>
+          </div>
+
+          {/* Question */}
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+              {questions[currentQuestion].question}
+            </h2>
+            <p className="text-white/40 text-sm">
+              {questions[currentQuestion].subtext}
+            </p>
+          </div>
+
+          {/* Options — multi select */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-10">
+            {questions[currentQuestion].options.map((option) => {
+              const isSelected = selectedOptions.includes(option);
+              return (
+                <button
+                  key={option}
+                  onClick={() => handleToggleOption(option)}
+                  className={`text-left p-4 rounded-2xl border transition-all text-sm font-medium flex items-center gap-3 ${
+                    isSelected
+                      ? "border-indigo-500 bg-indigo-600/20 text-indigo-300"
+                      : "bg-white/5 border-white/10 text-white/70 hover:border-white/30"
+                  }`}
+                >
+                  {/* Checkbox indicator */}
+                  <div
+                    className={`w-4 h-4 rounded flex-shrink-0 border flex items-center justify-center transition-all ${
+                      isSelected
+                        ? "bg-indigo-500 border-indigo-500"
+                        : "border-white/30"
+                    }`}
+                  >
+                    {isSelected && (
+                      <svg
+                        className="w-2.5 h-2.5 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={3}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Selected count + Next button */}
+          <div className="flex items-center justify-between">
+            <span className="text-white/30 text-xs">
+              {selectedOptions.length > 0
+                ? `${selectedOptions.length} selected`
+                : "Select at least one"}
+            </span>
+            <button
+              onClick={handleNext}
+              disabled={selectedOptions.length === 0}
+              className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl px-8 py-3 font-semibold text-sm transition-all"
+            >
+              {currentQuestion === questions.length - 1
+                ? "See My Plan →"
+                : "Next →"}
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // VIEW 2 — CHAT
+  // ═══════════════════════════════════════════════════════
+  return (
+    <main
+      className="min-h-screen flex flex-col"
+      style={{ backgroundColor: "#0f172a" }}
+    >
+      {/* Chat area */}
+      <div className="flex-1 overflow-y-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto w-full">
+
+          {/* Greeting */}
+          {messages.length === 0 && (
+            <div className="text-center mb-12">
+              <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                {userName
+                  ? `Welcome back, ${userName} 👋`
+                  : "Welcome back 👋"}
+              </h1>
+              <p className="text-white/50 text-sm">
+                {userSkill
+                  ? `Ready to push your ${userSkill} forward today?`
+                  : "What's blocking you today?"}
+              </p>
+            </div>
+          )}
+
+          {/* Messages */}
+          <div className="space-y-4">
+            {messages.map((msg, i) => (
+              <div key={i}>
+                <div
+                  className={`flex ${
+                    msg.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`max-w-xl px-5 py-3 rounded-2xl text-sm leading-relaxed ${
+                      msg.role === "user"
+                        ? "bg-indigo-600 text-white rounded-br-sm"
+                        : "bg-white/5 border border-white/10 text-white/90 rounded-bl-sm"
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                </div>
+
+                {/* Signup button */}
+                {msg.role === "ai" && msg.showSignupButton && (
+                  <div className="flex justify-start mt-3 ml-1">
+                    <div className="space-y-2 w-full max-w-xs">
+                      <Link
+                        href="/signup"
+                        className="block text-center bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl px-6 py-2.5 text-sm font-semibold transition-all shadow-lg shadow-indigo-600/20"
+                      >
+                        Create Account to Save Progress →
+                      </Link>
+                      <Link
+                        href="/battle"
+                        className="block text-center border border-white/20 text-white/50 hover:text-white/80 rounded-xl px-6 py-2.5 text-sm font-semibold transition-all"
+                      >
+                        Skip for now
+                      </Link>
+                      <p className="text-white/20 text-xs text-center">
+                        Your answers are saved for 24 hours
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Battle button */}
+                {msg.role === "ai" && msg.showBattleButton && (
+                  <div className="flex justify-start mt-3 ml-1">
+                    <Link
+                      href="/battle"
+                      className="block bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl px-6 py-2.5 text-sm font-semibold transition-all shadow-lg shadow-indigo-600/20"
+                    >
+                      Start Your 5 Min Session →
+                    </Link>
+                  </div>
+                )}
+              </div>
             ))}
+
+            {/* Loading dots */}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-white/5 border border-white/10 px-5 py-4 rounded-2xl rounded-bl-sm flex gap-1.5 items-center">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"
+                      style={{ animationDelay: `${i * 0.15}s` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            <div ref={chatBottomRef} />
           </div>
-          <p className="text-white/40 text-sm">
-            Every session logged. Every streak visible. Every win counted.
-    </p>
-    </div>
-      </section>
-
-      {/* URGENCY */}
-      <section className="max-w-3xl mx-auto px-8 py-16 text-center">
-        <div className="bg-gradient-to-br from-indigo-900/60 to-violet-900/40 border border-indigo-500/30 rounded-3xl p-12">
-          <div className="text-4xl mb-4">⏳</div>
-          <h2 className="text-3xl font-bold mb-4">
-            Every day you delay is a day your future self pays for.
-          </h2>
-          <p className="text-white/60 mb-3 leading-relaxed">
-            You've already read this far. That means part of you is ready.
-            The only thing between you and momentum is one 5-minute session.
-          </p>
-          <p className="text-indigo-300 font-semibold mb-8">
-            Start now. Not tomorrow. Not after the weekend. Now.
-          </p>
         </div>
-      </section>
+      </div>
 
-      {/* SIGNUP / LOGIN CARD — bottom of page */}
-      <section className="max-w-md mx-auto px-8 pb-24 text-center">
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
-          <h3 className="text-xl font-bold mb-2">Ready to break the resistance?</h3>
-          <p className="text-white/50 text-sm mb-6">
-            Join thousands who stopped waiting and started doing — 5 minutes at a time.
-          </p>
-          <div className="flex flex-col gap-3">
-            <Link
-              href="/signup"
-              className="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-indigo-600/20"
+      {/* Bottom input */}
+      <div className="border-t border-white/10 px-4 py-4">
+        <div className="max-w-3xl mx-auto w-full">
+
+          {/* Chips */}
+          {messages.length === 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {CHAT_CHIPS.map((chip) => (
+                <button
+                  key={chip}
+                  onClick={() => handleSendMessage(chip)}
+                  className="text-xs bg-white/5 border border-white/10 hover:border-indigo-500/50 hover:bg-indigo-600/10 text-white/60 hover:text-indigo-300 px-4 py-2 rounded-full transition-all"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Input */}
+          <div className="flex gap-3 items-end">
+            <textarea
+              rows={1}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(inputText);
+                }
+              }}
+              placeholder="What's blocking you today..."
+              className="flex-1 bg-white/5 border border-white/10 focus:border-indigo-500/50 rounded-2xl px-5 py-3 text-white text-sm placeholder-white/30 outline-none resize-none transition-all"
+            />
+            <button
+              onClick={() => handleSendMessage(inputText)}
+              disabled={!inputText.trim() || isLoading}
+              className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-2xl px-5 py-3 text-sm font-semibold transition-all"
             >
-              Create Free Account
-            </Link>
-            <Link
-              href="/signin"
-              className="w-full px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-semibold text-sm transition-all"
-            >
-              I already have an account
-            </Link>
+              Send
+            </button>
           </div>
-          <p className="text-white/20 text-xs mt-4">
-            Free forever. No credit card required.
+
+          <p className="text-white/20 text-xs text-center mt-3">
+            Press Enter to send · Shift+Enter for new line
           </p>
         </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="border-t border-white/10 text-center py-8 text-white/30 text-sm px-8">
-        <div>
-          <span className="text-indigo-400 font-bold">5Min</span>Shift — Remove action resistance
-        </div>
-      </footer>
-
+      </div>
     </main>
   );
 }

@@ -22,7 +22,13 @@ password:{
 type:String,
 required:false
 },
-
+onboardingAnswers: {
+  skill: { type: [String], default: [] },
+  currentLevel: { type: [String], default: [] },
+  biggestBlock: { type: [String], default: [] },
+  dailyTime: { type: [String], default: [] },
+  whyMatters: { type: [String], default: [] },
+},
   },{timestamps:true});
   
   export default mongoose.models.user || mongoose.model("user",UserSchema)

@@ -39,6 +39,9 @@ export default function RootLayout({
                 <Link href="/mindset" className="hover:text-white transition">
                  Mindset
                 </Link> */}
+                    <Link href="/" className="hover:text-white transition">
+                      Home
+                    </Link>
                     <Link href="/battle" className="hover:text-white transition">
                       Action
                     </Link>
