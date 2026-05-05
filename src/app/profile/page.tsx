@@ -51,8 +51,8 @@ function getCircleColor(value: number): string {
   if (value <= 5) return "#004069";
   if (value <= 15) return "#005082";
   if (value <= 30) return "#0063A1";
-  if (value <= 60) return" #0081D1";
-   return "#00A1FF";
+  if (value <= 60) return " #0081D1";
+  return "#00A1FF";
 }
 
 function getMembershipDuration(dateString: string): string {
@@ -168,7 +168,7 @@ function MainTracker({
               <div key={wi} className="flex flex-col" style={{ gap: "3px", marginRight: "3px" }}>
                 {week.map((day, di) => {
                   if (!day) return <div key={`e-${di}`} style={{ width: "15px", height: "15px" }} />;
-               const value = consistencyData[day] || 0;
+                  const value = consistencyData[day] || 0;
                   return (
                     <div
                       key={day}
@@ -193,7 +193,7 @@ function MainTracker({
 
           <div className="flex items-center gap-2 mt-3 justify-end">
             <span className="text-xs text-gray-600">Less</span>
-           {[0, 5, 15, 30, 60, 90].map((n) => (
+            {[0, 5, 15, 30, 60, 90].map((n) => (
               <div key={n} style={{
                 width: "12px", height: "12px", borderRadius: "50%",
                 backgroundColor: getCircleColor(n),

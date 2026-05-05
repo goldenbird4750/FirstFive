@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 // ─── Types ───────────────────────────────────────────────
 type View = "mcq" | "chat";
@@ -138,6 +139,9 @@ function clearOnboarding() {
 export default function HomePage() {
   const router = useRouter();
 
+  // ─── Session ─────────────────────────────────────────────
+  const { data: session, status } = useSession();
+
   // ─── View state ─────────────────────────────────────────
   const [view, setView] = useState<View | null>(null);
 
@@ -154,24 +158,64 @@ export default function HomePage() {
   const [userSkill, setUserSkill] = useState("");
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // ─── On mount ───────────────────────────────────────────
+  // ─── On mount — check session first ─────────────────────
   useEffect(() => {
+    // Wait for session to load
+    if (status === "loading") return;
+
+    // ── LOGGED IN USER ────────────────────────────────────
+    if (status === "authenticated" && session?.user) {
+      const name = session.user.name || "";
+      localStorage.setItem(STORAGE_KEYS.username, name);
+      setUserName(name);
+
+      // Try to load skill from localStorage for greeting
+      const savedAnswers = localStorage.getItem(STORAGE_KEYS.answers);
+      if (savedAnswers) {
+        try {
+          const parsed = JSON.parse(savedAnswers) as Answers;
+          setUserSkill(
+            Array.isArray(parsed.skill)
+              ? parsed.skill.join(", ")
+              : parsed.skill || ""
+          );
+        } catch {
+          // ignore parse errors
+        }
+      }
+
+      // Skip MCQ — go straight to chat
+      setView("chat");
+      return;
+    }
+
+    // ── GUEST USER ────────────────────────────────────────
     const onboarded = localStorage.getItem(STORAGE_KEYS.onboarded);
     const expired = isExpired();
 
+    // Expired — clear and show MCQ again
     if (expired && onboarded) {
       clearOnboarding();
       setView("mcq");
       return;
     }
 
+    // Load saved name and skill
     const savedName = localStorage.getItem(STORAGE_KEYS.username) || "";
     const savedAnswers = localStorage.getItem(STORAGE_KEYS.answers);
     setUserName(savedName);
 
     if (savedAnswers) {
-      const parsed = JSON.parse(savedAnswers) as Answers;
-      setUserSkill(parsed.skill?.join(", ") || "");
+      try {
+        const parsed = JSON.parse(savedAnswers) as Answers;
+        setUserSkill(
+          Array.isArray(parsed.skill)
+            ? parsed.skill.join(", ")
+            : parsed.skill || ""
+        );
+      } catch {
+        // ignore parse errors
+      }
     }
 
     if (!onboarded) {
@@ -179,7 +223,7 @@ export default function HomePage() {
     } else {
       setView("chat");
     }
-  }, []);
+  }, [status, session]);
 
   // ─── Auto scroll ────────────────────────────────────────
   useEffect(() => {
@@ -244,11 +288,7 @@ export default function HomePage() {
     setAnswers(newAnswers);
 
     if (currentQuestion === questions.length - 1) {
-      saveWithExpiry(
-        STORAGE_KEYS.answers,
-        JSON.stringify(newAnswers),
-        24
-      );
+      saveWithExpiry(STORAGE_KEYS.answers, JSON.stringify(newAnswers), 24);
       saveWithExpiry(STORAGE_KEYS.onboarded, "true", 24);
 
       setView("chat");
@@ -281,8 +321,8 @@ export default function HomePage() {
     await callAI({ isOnboarding: false, messages: history });
   };
 
-  // ─── Null / loading state ────────────────────────────────
-  if (view === null) {
+  // ─── Loading state ───────────────────────────────────────
+  if (view === null || status === "loading") {
     return (
       <main
         className="min-h-screen flex items-center justify-center"
@@ -343,7 +383,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Options — multi select */}
+          {/* Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-10">
             {questions[currentQuestion].options.map((option) => {
               const isSelected = selectedOptions.includes(option);
@@ -357,7 +397,6 @@ export default function HomePage() {
                       : "bg-white/5 border-white/10 text-white/70 hover:border-white/30"
                   }`}
                 >
-                  {/* Checkbox indicator */}
                   <div
                     className={`w-4 h-4 rounded flex-shrink-0 border flex items-center justify-center transition-all ${
                       isSelected
@@ -387,7 +426,7 @@ export default function HomePage() {
             })}
           </div>
 
-          {/* Selected count + Next button */}
+          {/* Next Button */}
           <div className="flex items-center justify-between">
             <span className="text-white/30 text-xs">
               {selectedOptions.length > 0
@@ -434,6 +473,21 @@ export default function HomePage() {
                   ? `Ready to push your ${userSkill} forward today?`
                   : "What's blocking you today?"}
               </p>
+
+              {/* Show signup prompt if guest */}
+              {status === "unauthenticated" && (
+                <div className="mt-4 inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2">
+                  <span className="text-white/40 text-xs">
+                    Your progress is temporary
+                  </span>
+                  <Link
+                    href="/signup"
+                    className="text-indigo-400 text-xs font-semibold hover:text-indigo-300"
+                  >
+                    Save it →
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 
