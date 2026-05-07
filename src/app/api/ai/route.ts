@@ -149,7 +149,6 @@ Why this matters to me: ${onboardingAnswers?.whyMatters?.join(", ")}`,
       showSignupButton,
       showBattleButton,
     });
-
   } catch (error) {
     console.error("Route error:", error);
     return NextResponse.json(

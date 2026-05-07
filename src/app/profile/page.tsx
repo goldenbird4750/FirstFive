@@ -363,3 +363,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+//nothing special jsut test the website and make sure the profile page is working fine with both authenticated and unauthenticated states. Check that the consistency tracker and skill cards display correctly, and that the login/logout buttons function as expected.

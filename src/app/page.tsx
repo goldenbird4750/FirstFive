@@ -391,18 +391,16 @@ export default function HomePage() {
                 <button
                   key={option}
                   onClick={() => handleToggleOption(option)}
-                  className={`text-left p-4 rounded-2xl border transition-all text-sm font-medium flex items-center gap-3 ${
-                    isSelected
+                  className={`text-left p-4 rounded-2xl border transition-all text-sm font-medium flex items-center gap-3 ${isSelected
                       ? "border-indigo-500 bg-indigo-600/20 text-indigo-300"
                       : "bg-white/5 border-white/10 text-white/70 hover:border-white/30"
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`w-4 h-4 rounded flex-shrink-0 border flex items-center justify-center transition-all ${
-                      isSelected
+                    className={`w-4 h-4 rounded flex-shrink-0 border flex items-center justify-center transition-all ${isSelected
                         ? "bg-indigo-500 border-indigo-500"
                         : "border-white/30"
-                    }`}
+                      }`}
                   >
                     {isSelected && (
                       <svg
@@ -496,16 +494,14 @@ export default function HomePage() {
             {messages.map((msg, i) => (
               <div key={i}>
                 <div
-                  className={`flex ${
-                    msg.role === "user" ? "justify-end" : "justify-start"
-                  }`}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"
+                    }`}
                 >
                   <div
-                    className={`max-w-xl px-5 py-3 rounded-2xl text-sm leading-relaxed ${
-                      msg.role === "user"
+                    className={`max-w-xl px-5 py-3 rounded-2xl text-sm leading-relaxed ${msg.role === "user"
                         ? "bg-indigo-600 text-white rounded-br-sm"
                         : "bg-white/5 border border-white/10 text-white/90 rounded-bl-sm"
-                    }`}
+                      }`}
                   >
                     {msg.content}
                   </div>
